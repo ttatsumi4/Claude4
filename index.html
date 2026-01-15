@@ -292,7 +292,7 @@
 <body>
     <div class="container">
         <h1>📚 メルカリ出品用 ISBN検索</h1>
-        <p class="subtitle">ISBNを入力して書籍情報を取得 <span style="font-size: 11px; color: #999; margin-left: 10px;">v1.2.4</span></p>
+        <p class="subtitle">ISBNを入力して書籍情報を取得 <span style="font-size: 11px; color: #999; margin-left: 10px;">v1.2.5</span></p>
 
         <div class="search-box">
             <label for="isbn">ISBN番号</label>
@@ -758,13 +758,22 @@
 ページ数: ${pageCount}
 ISBN: ${isbn}`;
 
-            // カスタムフィールドを追加（チェックされている場合のみ）
+            // カスタムフィールドを追加（チェックされている場合のみ、項目名なし、空行あり）
+            let hasCustomFields = false;
+            let customFieldsText = '';
             for (let i = 1; i <= 3; i++) {
                 const checkbox = document.getElementById(`custom${i}-enabled`);
                 const input = document.getElementById(`custom${i}-value`);
                 if (checkbox && checkbox.checked && input && input.value) {
-                    textToCopy += `\nカスタム${i}: ${input.value}`;
+                    if (!hasCustomFields) {
+                        hasCustomFields = true;
+                    }
+                    customFieldsText += `\n${input.value}`;
                 }
+            }
+
+            if (hasCustomFields) {
+                textToCopy += '\n' + customFieldsText;
             }
 
             navigator.clipboard.writeText(textToCopy).then(() => {
