@@ -242,7 +242,7 @@
 <body>
     <div class="container">
         <h1>📚 メルカリ出品用 ISBN検索</h1>
-        <p class="subtitle">ISBNを入力して書籍情報を取得 <span style="font-size: 11px; color: #999; margin-left: 10px;">v1.1.0</span></p>
+        <p class="subtitle">ISBNを入力して書籍情報を取得 <span style="font-size: 11px; color: #999; margin-left: 10px;">v1.2.0</span></p>
 
         <div class="search-box">
             <label for="isbn">ISBN番号</label>
@@ -462,7 +462,31 @@
                 </div>
                 <div class="info-item">
                     <div class="info-label">出版社:</div>
-                    <div class="info-value"><input type="text" class="info-input" id="input-publisher" value="${escapeHtml(bookData.publisher)}"></div>
+                    <div class="info-value">
+                        <input type="text" class="info-input" id="input-publisher" list="publishers" value="${escapeHtml(bookData.publisher)}">
+                        <datalist id="publishers">
+                            <option value="講談社">
+                            <option value="集英社">
+                            <option value="小学館">
+                            <option value="KADOKAWA">
+                            <option value="新潮社">
+                            <option value="文藝春秋">
+                            <option value="岩波書店">
+                            <option value="筑摩書房">
+                            <option value="光文社">
+                            <option value="幻冬舎">
+                            <option value="早川書房">
+                            <option value="東京創元社">
+                            <option value="PHP研究所">
+                            <option value="ダイヤモンド社">
+                            <option value="日経BP">
+                            <option value="技術評論社">
+                            <option value="翔泳社">
+                            <option value="オライリー・ジャパン">
+                            <option value="SBクリエイティブ">
+                            <option value="インプレス">
+                        </datalist>
+                    </div>
                 </div>
                 <div class="info-item">
                     <div class="info-label">出版日:</div>
@@ -470,7 +494,7 @@
                 </div>
                 <div class="info-item">
                     <div class="info-label">定価(税込):</div>
-                    <div class="info-value"><input type="text" class="info-input" id="input-price" value="${escapeHtml(bookData.price)}"></div>
+                    <div class="info-value"><input type="text" class="info-input" id="input-price" value="${escapeHtml(bookData.price)}" placeholder="税抜き価格を入力すると自動計算"></div>
                 </div>
                 <div class="info-item">
                     <div class="info-label">ページ数:</div>
@@ -481,6 +505,19 @@
                     <div class="info-value"><input type="text" class="info-input" id="input-isbn" value="${escapeHtml(bookData.isbn)}"></div>
                 </div>
             `;
+
+            // 定価フィールドに税込み計算イベントを追加
+            setTimeout(() => {
+                const priceInput = document.getElementById('input-price');
+                if (priceInput) {
+                    priceInput.addEventListener('blur', calculateTaxIncluded);
+                    priceInput.addEventListener('keypress', function(e) {
+                        if (e.key === 'Enter') {
+                            calculateTaxIncluded();
+                        }
+                    });
+                }
+            }, 0);
 
             result.style.display = 'block';
             document.getElementById('copiedMsg').style.display = 'none';
@@ -544,6 +581,29 @@ ISBN: ${isbn}`;
             setTimeout(() => {
                 copiedMsg.style.display = 'none';
             }, 2000);
+        }
+
+        // 税込み価格を計算する関数
+        function calculateTaxIncluded() {
+            const priceInput = document.getElementById('input-price');
+            if (!priceInput) return;
+
+            const value = priceInput.value.trim();
+
+            // 既に「円」が含まれている場合や「¥」で始まる場合はスキップ
+            if (value.includes('円') || value.includes('¥') || value === '不明') {
+                return;
+            }
+
+            // 数字のみを抽出（カンマを除去）
+            const numericValue = value.replace(/,/g, '');
+            const price = parseFloat(numericValue);
+
+            // 有効な数字の場合のみ税込み計算
+            if (!isNaN(price) && price > 0) {
+                const taxIncluded = Math.round(price * 1.10);
+                priceInput.value = `¥${taxIncluded.toLocaleString()}`;
+            }
         }
     </script>
 </body>
