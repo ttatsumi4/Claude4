@@ -260,7 +260,7 @@
 <body>
     <div class="container">
         <h1>📚 メルカリ出品用 ISBN検索</h1>
-        <p class="subtitle">ISBNを入力して書籍情報を取得 <span style="font-size: 11px; color: #999; margin-left: 10px;">v1.2.2</span></p>
+        <p class="subtitle">ISBNを入力して書籍情報を取得 <span style="font-size: 11px; color: #999; margin-left: 10px;">v1.2.3</span></p>
 
         <div class="search-box">
             <label for="isbn">ISBN番号</label>
@@ -475,6 +475,10 @@
                     <div class="info-value"><input type="text" class="info-input" id="input-title" value="${escapeHtml(bookData.title)}"></div>
                 </div>
                 <div class="info-item">
+                    <div class="info-label">要約:</div>
+                    <div class="info-value"><textarea class="info-textarea" id="input-description">${escapeHtml(bookData.description)}</textarea></div>
+                </div>
+                <div class="info-item">
                     <div class="info-label">著者:</div>
                     <div class="info-value"><input type="text" class="info-input" id="input-authors" value="${escapeHtml(bookData.authors)}"></div>
                 </div>
@@ -627,10 +631,6 @@
                     <div class="info-label">ISBN:</div>
                     <div class="info-value"><input type="text" class="info-input" id="input-isbn" value="${escapeHtml(bookData.isbn)}"></div>
                 </div>
-                <div class="info-item">
-                    <div class="info-label">要約:</div>
-                    <div class="info-value"><textarea class="info-textarea" id="input-description">${escapeHtml(bookData.description)}</textarea></div>
-                </div>
             `;
 
             // 定価フィールドに税込み計算イベントを追加
@@ -680,21 +680,21 @@
 
         // 全ての情報をコピー（タイトルを除く）
         function copyAllInfo() {
+            const description = document.getElementById('input-description')?.value || '';
             const authors = document.getElementById('input-authors')?.value || '';
             const publisher = document.getElementById('input-publisher')?.value || '';
             const publishedDate = document.getElementById('input-publishedDate')?.value || '';
             const price = document.getElementById('input-price')?.value || '';
             const pageCount = document.getElementById('input-pageCount')?.value || '';
             const isbn = document.getElementById('input-isbn')?.value || '';
-            const description = document.getElementById('input-description')?.value || '';
 
-            const textToCopy = `著者: ${authors}
+            const textToCopy = `要約: ${description}
+著者: ${authors}
 出版社: ${publisher}
 出版日: ${publishedDate}
 定価(税込): ${price}
 ページ数: ${pageCount}
-ISBN: ${isbn}
-要約: ${description}`;
+ISBN: ${isbn}`;
 
             navigator.clipboard.writeText(textToCopy).then(() => {
                 showCopiedMessage();
