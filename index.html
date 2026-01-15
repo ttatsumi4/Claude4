@@ -292,7 +292,7 @@
 <body>
     <div class="container">
         <h1>📚 メルカリ出品用 ISBN検索</h1>
-        <p class="subtitle">ISBNを入力して書籍情報を取得 <span style="font-size: 11px; color: #999; margin-left: 10px;">v1.2.6</span></p>
+        <p class="subtitle">ISBNを入力して書籍情報を取得 <span style="font-size: 11px; color: #999; margin-left: 10px;">v1.2.7</span></p>
 
         <div class="search-box">
             <label for="isbn">ISBN番号</label>
@@ -690,6 +690,24 @@
                         </div>
                     </div>
                 </div>
+                <div class="info-item">
+                    <div class="info-label">カスタム4:</div>
+                    <div class="info-value">
+                        <div class="custom-field">
+                            <input type="checkbox" class="custom-field-checkbox" id="custom4-enabled" onchange="toggleCustomField(4)">
+                            <input type="text" class="custom-field-input" id="custom4-value" placeholder="自由入力フィールド4" onchange="saveCustomFields()">
+                        </div>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">カスタム5:</div>
+                    <div class="info-value">
+                        <div class="custom-field">
+                            <input type="checkbox" class="custom-field-checkbox" id="custom5-enabled" onchange="toggleCustomField(5)">
+                            <input type="text" class="custom-field-input" id="custom5-value" placeholder="自由入力フィールド5" onchange="saveCustomFields()">
+                        </div>
+                    </div>
+                </div>
             `;
 
             // 定価フィールドに税込み計算イベントを追加
@@ -762,7 +780,7 @@ ISBN: ${isbn}`;
             // カスタムフィールドを追加（チェックされている場合のみ、項目名なし、空行あり）
             let hasCustomFields = false;
             let customFieldsText = '';
-            for (let i = 1; i <= 3; i++) {
+            for (let i = 1; i <= 5; i++) {
                 const checkbox = document.getElementById(`custom${i}-enabled`);
                 const input = document.getElementById(`custom${i}-value`);
                 if (checkbox && checkbox.checked && input && input.value) {
@@ -819,7 +837,7 @@ ISBN: ${isbn}`;
         // カスタムフィールドをlocalStorageに保存
         function saveCustomFields() {
             const customFields = {};
-            for (let i = 1; i <= 3; i++) {
+            for (let i = 1; i <= 5; i++) {
                 const checkbox = document.getElementById(`custom${i}-enabled`);
                 const input = document.getElementById(`custom${i}-value`);
                 if (checkbox && input) {
@@ -838,7 +856,7 @@ ISBN: ${isbn}`;
             if (saved) {
                 try {
                     const customFields = JSON.parse(saved);
-                    for (let i = 1; i <= 3; i++) {
+                    for (let i = 1; i <= 5; i++) {
                         const data = customFields[`custom${i}`];
                         if (data) {
                             const checkbox = document.getElementById(`custom${i}-enabled`);
