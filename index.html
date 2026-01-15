@@ -292,7 +292,7 @@
 <body>
     <div class="container">
         <h1>📚 メルカリ出品用 ISBN検索</h1>
-        <p class="subtitle">ISBNを入力して書籍情報を取得 <span style="font-size: 11px; color: #999; margin-left: 10px;">v1.2.5</span></p>
+        <p class="subtitle">ISBNを入力して書籍情報を取得 <span style="font-size: 11px; color: #999; margin-left: 10px;">v1.2.6</span></p>
 
         <div class="search-box">
             <label for="isbn">ISBN番号</label>
@@ -751,6 +751,7 @@
             const isbn = document.getElementById('input-isbn')?.value || '';
 
             let textToCopy = `要約: ${description}
+
 著者: ${authors}
 出版社: ${publisher}
 出版日: ${publishedDate}
