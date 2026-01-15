@@ -242,7 +242,7 @@
 <body>
     <div class="container">
         <h1>📚 メルカリ出品用 ISBN検索</h1>
-        <p class="subtitle">ISBNを入力して書籍情報を取得 <span style="font-size: 11px; color: #999; margin-left: 10px;">v1.2.0</span></p>
+        <p class="subtitle">ISBNを入力して書籍情報を取得 <span style="font-size: 11px; color: #999; margin-left: 10px;">v1.2.1</span></p>
 
         <div class="search-box">
             <label for="isbn">ISBN番号</label>
@@ -356,7 +356,7 @@
         function displayGoogleBooksResult(item) {
             const volumeInfo = item.volumeInfo;
             const saleInfo = item.saleInfo;
-            let isbn = '不明';
+            let isbn = '';
 
             if (volumeInfo.industryIdentifiers) {
                 // ISBN-13を優先
@@ -373,7 +373,7 @@
             }
 
             // 価格情報を取得（日本円の定価）
-            let price = '不明';
+            let price = '';
             if (saleInfo && saleInfo.listPrice && saleInfo.listPrice.currencyCode === 'JPY') {
                 price = `¥${saleInfo.listPrice.amount.toLocaleString()}`;
             } else if (saleInfo && saleInfo.retailPrice && saleInfo.retailPrice.currencyCode === 'JPY') {
@@ -381,13 +381,13 @@
             }
 
             currentBookData = {
-                title: volumeInfo.title || '不明',
-                authors: volumeInfo.authors ? volumeInfo.authors.join(', ') : '不明',
-                publisher: volumeInfo.publisher || '不明',
-                publishedDate: volumeInfo.publishedDate || '不明',
-                description: volumeInfo.description || '説明なし',
+                title: volumeInfo.title || '',
+                authors: volumeInfo.authors ? volumeInfo.authors.join(', ') : '',
+                publisher: volumeInfo.publisher || '',
+                publishedDate: volumeInfo.publishedDate || '',
+                description: volumeInfo.description || '',
                 price: price,
-                pageCount: volumeInfo.pageCount || '不明',
+                pageCount: volumeInfo.pageCount || '',
                 isbn: isbn,
                 thumbnail: volumeInfo.imageLinks?.thumbnail || ''
             };
@@ -399,14 +399,14 @@
             const summary = item.summary;
             const onix = item.onix;
 
-            let isbn = summary?.isbn || '不明';
+            let isbn = summary?.isbn || '';
             // 10桁のISBNの場合は13桁に変換
-            if (isbn !== '不明' && isbn.replace(/-/g, '').length === 10) {
+            if (isbn && isbn.replace(/-/g, '').length === 10) {
                 isbn = convertISBN10to13(isbn.replace(/-/g, ''));
             }
 
             // 価格情報を取得（税込み価格）
-            let price = '不明';
+            let price = '';
             try {
                 const priceData = onix?.ProductSupply?.SupplyDetail?.Price;
                 if (priceData && Array.isArray(priceData)) {
@@ -424,13 +424,13 @@
             }
 
             currentBookData = {
-                title: summary?.title || '不明',
-                authors: summary?.author || '不明',
-                publisher: summary?.publisher || '不明',
-                publishedDate: summary?.pubdate || '不明',
-                description: onix?.CollateralDetail?.TextContent?.[0]?.Text || '説明なし',
+                title: summary?.title || '',
+                authors: summary?.author || '',
+                publisher: summary?.publisher || '',
+                publishedDate: summary?.pubdate || '',
+                description: onix?.CollateralDetail?.TextContent?.[0]?.Text || '',
                 price: price,
-                pageCount: '不明',
+                pageCount: '',
                 isbn: isbn,
                 thumbnail: summary?.cover || ''
             };
@@ -465,26 +465,131 @@
                     <div class="info-value">
                         <input type="text" class="info-input" id="input-publisher" list="publishers" value="${escapeHtml(bookData.publisher)}">
                         <datalist id="publishers">
-                            <option value="講談社">
-                            <option value="集英社">
-                            <option value="小学館">
                             <option value="KADOKAWA">
-                            <option value="新潮社">
-                            <option value="文藝春秋">
-                            <option value="岩波書店">
-                            <option value="筑摩書房">
-                            <option value="光文社">
-                            <option value="幻冬舎">
-                            <option value="早川書房">
-                            <option value="東京創元社">
                             <option value="PHP研究所">
-                            <option value="ダイヤモンド社">
-                            <option value="日経BP">
-                            <option value="技術評論社">
-                            <option value="翔泳社">
-                            <option value="オライリー・ジャパン">
                             <option value="SBクリエイティブ">
+                            <option value="あさ出版">
+                            <option value="あすなろ書房">
+                            <option value="あかね書房">
+                            <option value="イースト・プレス">
                             <option value="インプレス">
+                            <option value="オライリー・ジャパン">
+                            <option value="かんき出版">
+                            <option value="クロスメディア・パブリッシング">
+                            <option value="ことのは出版">
+                            <option value="コロナ社">
+                            <option value="サンマーク出版">
+                            <option value="すばる舎">
+                            <option value="ダイヤモンド社">
+                            <option value="ディスカヴァー・トゥエンティワン">
+                            <option value="ナツメ社">
+                            <option value="ポプラ社">
+                            <option value="マイナビ出版">
+                            <option value="みすず書房">
+                            <option value="ミネルヴァ書房">
+                            <option value="リットーミュージック">
+                            <option value="ワニブックス">
+                            <option value="三笠書房">
+                            <option value="中央公論新社">
+                            <option value="中経出版">
+                            <option value="主婦と生活社">
+                            <option value="主婦の友社">
+                            <option value="二見書房">
+                            <option value="亜紀書房">
+                            <option value="偕成社">
+                            <option value="光文社">
+                            <option value="勁草書房">
+                            <option value="化学同人">
+                            <option value="医学書院">
+                            <option value="医歯薬出版">
+                            <option value="南江堂">
+                            <option value="原書房">
+                            <option value="双葉社">
+                            <option value="叢文社">
+                            <option value="合同出版">
+                            <option value="吉川弘文館">
+                            <option value="国書刊行会">
+                            <option value="大修館書店">
+                            <option value="大和書房">
+                            <option value="太田出版">
+                            <option value="学研プラス">
+                            <option value="学芸出版社">
+                            <option value="宝島社">
+                            <option value="実業之日本社">
+                            <option value="小学館">
+                            <option value="小学館クリエイティブ">
+                            <option value="岩崎書店">
+                            <option value="岩波書店">
+                            <option value="平凡社">
+                            <option value="幻冬舎">
+                            <option value="幻冬舎メディアコンサルティング">
+                            <option value="彩図社">
+                            <option value="徳間書店">
+                            <option value="成美堂出版">
+                            <option value="技術評論社">
+                            <option value="扶桑社">
+                            <option value="日刊工業新聞社">
+                            <option value="日本コロムビア">
+                            <option value="日本実業出版社">
+                            <option value="日本文芸社">
+                            <option value="日本経済新聞出版">
+                            <option value="日本能率協会マネジメントセンター">
+                            <option value="日経BP">
+                            <option value="早川書房">
+                            <option value="明治書院">
+                            <option value="春秋社">
+                            <option value="晶文社">
+                            <option value="朝日新聞出版">
+                            <option value="朝倉書店">
+                            <option value="未来社">
+                            <option value="東京創元社">
+                            <option value="東京大学出版会">
+                            <option value="東京堂出版">
+                            <option value="東京書籍">
+                            <option value="東洋経済新報社">
+                            <option value="柏書房">
+                            <option value="森北出版">
+                            <option value="極東書店">
+                            <option value="樹村房">
+                            <option value="毎日新聞出版">
+                            <option value="河出書房新社">
+                            <option value="法政大学出版局">
+                            <option value="海鳴社">
+                            <option value="清水書院">
+                            <option value="渓水社">
+                            <option value="潮出版社">
+                            <option value="理工学社">
+                            <option value="産業編集センター">
+                            <option value="白水社">
+                            <option value="秀和システム">
+                            <option value="筑摩書房">
+                            <option value="築地書館">
+                            <option value="紀伊國屋書店">
+                            <option value="翔泳社">
+                            <option value="自由国民社">
+                            <option value="花伝社">
+                            <option value="芳文社">
+                            <option value="草思社">
+                            <option value="角川春樹事務所">
+                            <option value="講談社">
+                            <option value="講談社ビーシー">
+                            <option value="講談社サイエンティフィク">
+                            <option value="誠文堂新光社">
+                            <option value="誠信書房">
+                            <option value="論創社">
+                            <option value="講談社">
+                            <option value="金の星社">
+                            <option value="金芳堂">
+                            <option value="鉄人社">
+                            <option value="集英社">
+                            <option value="集英社インターナショナル">
+                            <option value="青土社">
+                            <option value="青弓社">
+                            <option value="音楽之友社">
+                            <option value="飛鳥新社">
+                            <option value="鳥影社">
+                            <option value="麻布台出版社">
+                            <option value="黎明書房">
                         </datalist>
                     </div>
                 </div>
@@ -590,8 +695,8 @@ ISBN: ${isbn}`;
 
             const value = priceInput.value.trim();
 
-            // 既に「円」が含まれている場合や「¥」で始まる場合はスキップ
-            if (value.includes('円') || value.includes('¥') || value === '不明') {
+            // 空文字列、または既に「円」が含まれている場合や「¥」で始まる場合はスキップ
+            if (!value || value.includes('円') || value.includes('¥')) {
                 return;
             }
 
