@@ -242,7 +242,7 @@
 <body>
     <div class="container">
         <h1>📚 メルカリ出品用 ISBN検索</h1>
-        <p class="subtitle">ISBNを入力して書籍情報を取得</p>
+        <p class="subtitle">ISBNを入力して書籍情報を取得 <span style="font-size: 11px; color: #999; margin-left: 10px;">v1.1.0</span></p>
 
         <div class="search-box">
             <label for="isbn">ISBN番号</label>
@@ -355,6 +355,7 @@
 
         function displayGoogleBooksResult(item) {
             const volumeInfo = item.volumeInfo;
+            const saleInfo = item.saleInfo;
             let isbn = '不明';
 
             if (volumeInfo.industryIdentifiers) {
@@ -371,12 +372,21 @@
                 }
             }
 
+            // 価格情報を取得（日本円の定価）
+            let price = '不明';
+            if (saleInfo && saleInfo.listPrice && saleInfo.listPrice.currencyCode === 'JPY') {
+                price = `¥${saleInfo.listPrice.amount.toLocaleString()}`;
+            } else if (saleInfo && saleInfo.retailPrice && saleInfo.retailPrice.currencyCode === 'JPY') {
+                price = `¥${saleInfo.retailPrice.amount.toLocaleString()}`;
+            }
+
             currentBookData = {
                 title: volumeInfo.title || '不明',
                 authors: volumeInfo.authors ? volumeInfo.authors.join(', ') : '不明',
                 publisher: volumeInfo.publisher || '不明',
                 publishedDate: volumeInfo.publishedDate || '不明',
                 description: volumeInfo.description || '説明なし',
+                price: price,
                 pageCount: volumeInfo.pageCount || '不明',
                 isbn: isbn,
                 thumbnail: volumeInfo.imageLinks?.thumbnail || ''
@@ -395,12 +405,31 @@
                 isbn = convertISBN10to13(isbn.replace(/-/g, ''));
             }
 
+            // 価格情報を取得（税込み価格）
+            let price = '不明';
+            try {
+                const priceData = onix?.ProductSupply?.SupplyDetail?.Price;
+                if (priceData && Array.isArray(priceData)) {
+                    // PriceType 03 = 税込み価格、04 = 税抜き価格
+                    const priceWithTax = priceData.find(p => p.PriceType === '03');
+                    if (priceWithTax && priceWithTax.PriceAmount) {
+                        price = `¥${parseInt(priceWithTax.PriceAmount).toLocaleString()}`;
+                    } else if (priceData[0] && priceData[0].PriceAmount) {
+                        // 税込み価格がない場合は最初の価格を使用
+                        price = `¥${parseInt(priceData[0].PriceAmount).toLocaleString()}`;
+                    }
+                }
+            } catch (e) {
+                console.log('価格情報の取得に失敗:', e);
+            }
+
             currentBookData = {
                 title: summary?.title || '不明',
                 authors: summary?.author || '不明',
                 publisher: summary?.publisher || '不明',
                 publishedDate: summary?.pubdate || '不明',
                 description: onix?.CollateralDetail?.TextContent?.[0]?.Text || '説明なし',
+                price: price,
                 pageCount: '不明',
                 isbn: isbn,
                 thumbnail: summary?.cover || ''
@@ -438,6 +467,10 @@
                 <div class="info-item">
                     <div class="info-label">出版日:</div>
                     <div class="info-value"><input type="text" class="info-input" id="input-publishedDate" value="${escapeHtml(bookData.publishedDate)}"></div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">定価(税込):</div>
+                    <div class="info-value"><input type="text" class="info-input" id="input-price" value="${escapeHtml(bookData.price)}"></div>
                 </div>
                 <div class="info-item">
                     <div class="info-label">ページ数:</div>
@@ -486,12 +519,14 @@
             const authors = document.getElementById('input-authors')?.value || '';
             const publisher = document.getElementById('input-publisher')?.value || '';
             const publishedDate = document.getElementById('input-publishedDate')?.value || '';
+            const price = document.getElementById('input-price')?.value || '';
             const pageCount = document.getElementById('input-pageCount')?.value || '';
             const isbn = document.getElementById('input-isbn')?.value || '';
 
             const textToCopy = `著者: ${authors}
 出版社: ${publisher}
 出版日: ${publishedDate}
+定価(税込): ${price}
 ページ数: ${pageCount}
 ISBN: ${isbn}`;
 
