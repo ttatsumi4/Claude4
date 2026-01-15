@@ -69,6 +69,21 @@
             border-color: #667eea;
         }
 
+        .info-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            background: white;
+        }
+
+        .info-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
         .help-text {
             font-size: 12px;
             color: #888;
@@ -196,6 +211,26 @@
             box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
         }
 
+        .copy-all-btn {
+            background: #17a2b8;
+            padding: 8px 16px;
+            font-size: 14px;
+            margin-top: 15px;
+            margin-left: 10px;
+            width: auto;
+        }
+
+        .copy-all-btn:hover {
+            box-shadow: 0 5px 15px rgba(23, 162, 184, 0.4);
+        }
+
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
         .copied {
             display: inline-block;
             margin-left: 10px;
@@ -212,7 +247,7 @@
         <div class="search-box">
             <label for="isbn">ISBN番号</label>
             <input type="text" id="isbn" placeholder="例: 9784797327038" maxlength="13">
-            <p class="help-text">※ ハイフンなしで13桁または10桁の数字を入力してください</p>
+            <p class="help-text">※ ハイフンなしで13桁の数字を入力してください（978から始まる）</p>
             <button id="searchBtn" onclick="searchBook()">🔍 検索</button>
         </div>
 
@@ -227,7 +262,10 @@
             <h2>📖 書籍情報</h2>
             <div class="book-cover" id="bookCover"></div>
             <div class="book-info" id="bookInfo"></div>
-            <button class="copy-btn" onclick="copyToClipboard()">📋 タイトルをコピー</button>
+            <div class="button-group">
+                <button class="copy-btn" onclick="copyTitle()">📋 タイトルをコピー</button>
+                <button class="copy-all-btn" onclick="copyAllInfo()">📄 全ての情報をコピー</button>
+            </div>
             <span class="copied" id="copiedMsg" style="display: none;">✓ コピーしました！</span>
         </div>
     </div>
@@ -242,8 +280,25 @@
             }
         });
 
+        // ISBN-10を ISBN-13に変換する関数
+        function convertISBN10to13(isbn10) {
+            if (isbn10.length !== 10) return isbn10;
+
+            // 978プレフィックスを追加
+            const isbn12 = '978' + isbn10.substring(0, 9);
+
+            // チェックディジットを計算
+            let sum = 0;
+            for (let i = 0; i < 12; i++) {
+                sum += parseInt(isbn12[i]) * (i % 2 === 0 ? 1 : 3);
+            }
+            const checkDigit = (10 - (sum % 10)) % 10;
+
+            return isbn12 + checkDigit;
+        }
+
         async function searchBook() {
-            const isbn = document.getElementById('isbn').value.trim().replace(/-/g, '');
+            let isbn = document.getElementById('isbn').value.trim().replace(/-/g, '');
             const loading = document.getElementById('loading');
             const result = document.getElementById('result');
             const error = document.getElementById('error');
@@ -258,6 +313,11 @@
             if (!/^\d{10}(\d{3})?$/.test(isbn)) {
                 showError('正しいISBN形式で入力してください（10桁または13桁の数字）');
                 return;
+            }
+
+            // 10桁のISBNを13桁に変換
+            if (isbn.length === 10) {
+                isbn = convertISBN10to13(isbn);
             }
 
             // UI更新
@@ -295,6 +355,22 @@
 
         function displayGoogleBooksResult(item) {
             const volumeInfo = item.volumeInfo;
+            let isbn = '不明';
+
+            if (volumeInfo.industryIdentifiers) {
+                // ISBN-13を優先
+                const isbn13 = volumeInfo.industryIdentifiers.find(id => id.type === 'ISBN_13');
+                if (isbn13) {
+                    isbn = isbn13.identifier;
+                } else {
+                    // ISBN-10がある場合は13桁に変換
+                    const isbn10 = volumeInfo.industryIdentifiers.find(id => id.type === 'ISBN_10');
+                    if (isbn10) {
+                        isbn = convertISBN10to13(isbn10.identifier.replace(/-/g, ''));
+                    }
+                }
+            }
+
             currentBookData = {
                 title: volumeInfo.title || '不明',
                 authors: volumeInfo.authors ? volumeInfo.authors.join(', ') : '不明',
@@ -302,7 +378,7 @@
                 publishedDate: volumeInfo.publishedDate || '不明',
                 description: volumeInfo.description || '説明なし',
                 pageCount: volumeInfo.pageCount || '不明',
-                isbn: volumeInfo.industryIdentifiers ? volumeInfo.industryIdentifiers.find(id => id.type === 'ISBN_13' || id.type === 'ISBN_10')?.identifier : '不明',
+                isbn: isbn,
                 thumbnail: volumeInfo.imageLinks?.thumbnail || ''
             };
 
@@ -313,6 +389,12 @@
             const summary = item.summary;
             const onix = item.onix;
 
+            let isbn = summary?.isbn || '不明';
+            // 10桁のISBNの場合は13桁に変換
+            if (isbn !== '不明' && isbn.replace(/-/g, '').length === 10) {
+                isbn = convertISBN10to13(isbn.replace(/-/g, ''));
+            }
+
             currentBookData = {
                 title: summary?.title || '不明',
                 authors: summary?.author || '不明',
@@ -320,7 +402,7 @@
                 publishedDate: summary?.pubdate || '不明',
                 description: onix?.CollateralDetail?.TextContent?.[0]?.Text || '説明なし',
                 pageCount: '不明',
-                isbn: summary?.isbn || '不明',
+                isbn: isbn,
                 thumbnail: summary?.cover || ''
             };
 
@@ -339,36 +421,43 @@
                 bookCover.innerHTML = '<p style="color: #999;">表紙画像なし</p>';
             }
 
-            // 書籍情報
+            // 書籍情報（編集可能なテキストボックス）
             bookInfo.innerHTML = `
                 <div class="info-item">
                     <div class="info-label">タイトル:</div>
-                    <div class="info-value">${bookData.title}</div>
+                    <div class="info-value"><input type="text" class="info-input" id="input-title" value="${escapeHtml(bookData.title)}"></div>
                 </div>
                 <div class="info-item">
                     <div class="info-label">著者:</div>
-                    <div class="info-value">${bookData.authors}</div>
+                    <div class="info-value"><input type="text" class="info-input" id="input-authors" value="${escapeHtml(bookData.authors)}"></div>
                 </div>
                 <div class="info-item">
                     <div class="info-label">出版社:</div>
-                    <div class="info-value">${bookData.publisher}</div>
+                    <div class="info-value"><input type="text" class="info-input" id="input-publisher" value="${escapeHtml(bookData.publisher)}"></div>
                 </div>
                 <div class="info-item">
                     <div class="info-label">出版日:</div>
-                    <div class="info-value">${bookData.publishedDate}</div>
+                    <div class="info-value"><input type="text" class="info-input" id="input-publishedDate" value="${escapeHtml(bookData.publishedDate)}"></div>
                 </div>
                 <div class="info-item">
                     <div class="info-label">ページ数:</div>
-                    <div class="info-value">${bookData.pageCount}</div>
+                    <div class="info-value"><input type="text" class="info-input" id="input-pageCount" value="${escapeHtml(bookData.pageCount)}"></div>
                 </div>
                 <div class="info-item">
                     <div class="info-label">ISBN:</div>
-                    <div class="info-value">${bookData.isbn}</div>
+                    <div class="info-value"><input type="text" class="info-input" id="input-isbn" value="${escapeHtml(bookData.isbn)}"></div>
                 </div>
             `;
 
             result.style.display = 'block';
             document.getElementById('copiedMsg').style.display = 'none';
+        }
+
+        // HTMLエスケープ関数
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
 
         function showError(message) {
@@ -377,21 +466,49 @@
             error.style.display = 'block';
         }
 
-        function copyToClipboard() {
-            if (currentBookData && currentBookData.title) {
-                const textToCopy = `${currentBookData.title} ${currentBookData.authors}`;
+        // タイトルのみをコピー
+        function copyTitle() {
+            const titleInput = document.getElementById('input-title');
+            if (titleInput) {
+                const textToCopy = titleInput.value;
 
                 navigator.clipboard.writeText(textToCopy).then(() => {
-                    const copiedMsg = document.getElementById('copiedMsg');
-                    copiedMsg.style.display = 'inline-block';
-                    setTimeout(() => {
-                        copiedMsg.style.display = 'none';
-                    }, 2000);
+                    showCopiedMessage();
                 }).catch(err => {
                     console.error('コピーに失敗しました:', err);
                     alert('コピーに失敗しました');
                 });
             }
+        }
+
+        // 全ての情報をコピー（タイトルを除く）
+        function copyAllInfo() {
+            const authors = document.getElementById('input-authors')?.value || '';
+            const publisher = document.getElementById('input-publisher')?.value || '';
+            const publishedDate = document.getElementById('input-publishedDate')?.value || '';
+            const pageCount = document.getElementById('input-pageCount')?.value || '';
+            const isbn = document.getElementById('input-isbn')?.value || '';
+
+            const textToCopy = `著者: ${authors}
+出版社: ${publisher}
+出版日: ${publishedDate}
+ページ数: ${pageCount}
+ISBN: ${isbn}`;
+
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                showCopiedMessage();
+            }).catch(err => {
+                console.error('コピーに失敗しました:', err);
+                alert('コピーに失敗しました');
+            });
+        }
+
+        function showCopiedMessage() {
+            const copiedMsg = document.getElementById('copiedMsg');
+            copiedMsg.style.display = 'inline-block';
+            setTimeout(() => {
+                copiedMsg.style.display = 'none';
+            }, 2000);
         }
     </script>
 </body>
