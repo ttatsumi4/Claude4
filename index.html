@@ -196,11 +196,92 @@
             box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
         }
 
+        .copy-btn-small {
+            background: #28a745;
+            padding: 6px 12px;
+            font-size: 12px;
+            margin-left: 10px;
+            width: auto;
+            display: inline-block;
+        }
+
+        .copy-btn-small:hover {
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+        }
+
         .copied {
             display: inline-block;
             margin-left: 10px;
             color: #28a745;
             font-size: 14px;
+        }
+
+        .title-section {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .book-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333;
+            flex: 1;
+            margin-right: 15px;
+        }
+
+        .description-section {
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .description-label {
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .description-text {
+            color: #333;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .detail-item {
+            background: #fff;
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            border: 1px solid #e0e0e0;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #555;
+            min-width: 120px;
+            font-size: 14px;
+        }
+
+        .detail-value {
+            color: #333;
+            flex: 1;
+            font-size: 14px;
+        }
+
+        .copy-all-section {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 2px solid #e0e0e0;
+            text-align: center;
         }
     </style>
 </head>
@@ -226,9 +307,7 @@
         <div class="result" id="result">
             <h2>📖 書籍情報</h2>
             <div class="book-cover" id="bookCover"></div>
-            <div class="book-info" id="bookInfo"></div>
-            <button class="copy-btn" onclick="copyToClipboard()">📋 タイトルをコピー</button>
-            <span class="copied" id="copiedMsg" style="display: none;">✓ コピーしました！</span>
+            <div id="bookInfo"></div>
         </div>
     </div>
 
@@ -341,34 +420,43 @@
 
             // 書籍情報
             bookInfo.innerHTML = `
-                <div class="info-item">
-                    <div class="info-label">タイトル:</div>
-                    <div class="info-value">${bookData.title}</div>
+                <div class="title-section">
+                    <div class="book-title">${bookData.title}</div>
+                    <button class="copy-btn-small" onclick="copyTitle()">📋 コピー</button>
                 </div>
-                <div class="info-item">
-                    <div class="info-label">著者:</div>
-                    <div class="info-value">${bookData.authors}</div>
+
+                <div class="description-section">
+                    <div class="description-label">📝 内容の要約</div>
+                    <div class="description-text">${bookData.description}</div>
                 </div>
-                <div class="info-item">
-                    <div class="info-label">出版社:</div>
-                    <div class="info-value">${bookData.publisher}</div>
+
+                <div class="detail-item">
+                    <div class="detail-label">🏢 出版社</div>
+                    <div class="detail-value">${bookData.publisher}</div>
                 </div>
-                <div class="info-item">
-                    <div class="info-label">出版日:</div>
-                    <div class="info-value">${bookData.publishedDate}</div>
+
+                <div class="detail-item">
+                    <div class="detail-label">✍️ 著者名</div>
+                    <div class="detail-value">${bookData.authors}</div>
                 </div>
-                <div class="info-item">
-                    <div class="info-label">ページ数:</div>
-                    <div class="info-value">${bookData.pageCount}</div>
+
+                <div class="detail-item">
+                    <div class="detail-label">📅 出版年月日</div>
+                    <div class="detail-value">${bookData.publishedDate}</div>
                 </div>
-                <div class="info-item">
-                    <div class="info-label">ISBN:</div>
-                    <div class="info-value">${bookData.isbn}</div>
+
+                <div class="detail-item">
+                    <div class="detail-label">🔢 ISBNコード</div>
+                    <div class="detail-value">${bookData.isbn}</div>
+                </div>
+
+                <div class="copy-all-section">
+                    <button class="copy-btn" onclick="copyAllInfo()">📋 すべての情報をコピー</button>
+                    <span class="copied" id="copiedMsg" style="display: none;">✓ コピーしました！</span>
                 </div>
             `;
 
             result.style.display = 'block';
-            document.getElementById('copiedMsg').style.display = 'none';
         }
 
         function showError(message) {
@@ -377,20 +465,47 @@
             error.style.display = 'block';
         }
 
-        function copyToClipboard() {
+        function copyTitle() {
             if (currentBookData && currentBookData.title) {
-                const textToCopy = `${currentBookData.title} ${currentBookData.authors}`;
+                const textToCopy = currentBookData.title;
 
                 navigator.clipboard.writeText(textToCopy).then(() => {
-                    const copiedMsg = document.getElementById('copiedMsg');
-                    copiedMsg.style.display = 'inline-block';
-                    setTimeout(() => {
-                        copiedMsg.style.display = 'none';
-                    }, 2000);
+                    showCopiedMessage();
                 }).catch(err => {
                     console.error('コピーに失敗しました:', err);
                     alert('コピーに失敗しました');
                 });
+            }
+        }
+
+        function copyAllInfo() {
+            if (currentBookData) {
+                const textToCopy = `タイトル: ${currentBookData.title}
+
+内容の要約:
+${currentBookData.description}
+
+出版社: ${currentBookData.publisher}
+著者名: ${currentBookData.authors}
+出版年月日: ${currentBookData.publishedDate}
+ISBNコード: ${currentBookData.isbn}`;
+
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    showCopiedMessage();
+                }).catch(err => {
+                    console.error('コピーに失敗しました:', err);
+                    alert('コピーに失敗しました');
+                });
+            }
+        }
+
+        function showCopiedMessage() {
+            const copiedMsg = document.getElementById('copiedMsg');
+            if (copiedMsg) {
+                copiedMsg.style.display = 'inline-block';
+                setTimeout(() => {
+                    copiedMsg.style.display = 'none';
+                }, 2000);
             }
         }
     </script>
